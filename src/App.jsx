@@ -3,6 +3,8 @@ import './App.css'
 import CoinInfo from './components/CoinInfo'
 
 function App() {
+  let tries = 0
+  const MAX_ATTEMPTS = 1
   const [list, setList] = useState(null)
   const [searchInput, setSearchInput] = useState("")
   const [filteredResult, setFilteredResult] = useState([])
@@ -16,9 +18,18 @@ function App() {
         }
       })
       const data = await response.json();
+
+      localStorage.setItem("data", JSON.stringify(data));
       setList(data);
     }
-    fetchTopCoins().catch((console.errors));
+    const storedString = localStorage.getItem("data")
+    const localData = JSON.parse(storedString)
+    if (localData != null) {
+      setList(localData)
+    } else {
+      if (tries <= MAX_ATTEMPTS) fetchTopCoins().catch((console.errors));
+      tries += 1
+    }
   }, []);
 
   const searchItems = (event) => {
@@ -53,8 +64,9 @@ function App() {
       <input placeholder='Search...' onChange={searchItems}/>
         {filteredResult.length > 0 ? 
         (
-          filteredResult && filteredResult?.map((coin) => (
+          filteredResult && filteredResult?.map((coin, index) => (
             <CoinInfo
+            index={index}
             key={coin.id}
             id={coin.id}
             image={coin.image}
@@ -65,8 +77,9 @@ function App() {
           ))
         ) : 
         (
-          list && list?.map((coin) => (
+          list && list?.map((coin, index) => (
             <CoinInfo
+            index={index}
             key={coin.id}
             id={coin.id}
             image={coin.image}

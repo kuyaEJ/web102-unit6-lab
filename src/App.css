@@ -1,3 +1,9 @@
+/* App and Layout*/
+
+.whole-page {
+  margin-top: 10%
+}
+
 .main-list {
   display: flex;
   flex-direction: column;
@@ -6,10 +12,114 @@
   padding-bottom: 3%;
 }
 
+nav {
+  display: flex;
+  flex-direction: row-reverse;
+  /* gap: 10px; */
+  margin-top: 1%
+}
+
+
+.homeLink {
+  display: flex;
+  position: fixed;
+  flex-grow: 0;
+  color: rgb(206, 206, 206);
+  background-color: #282727;
+  border-radius: 10px;
+  padding: 11px 18px;
+  margin: 7px;
+  text-decoration: none;
+}
+
+/* DetailView CoinDetail and CoinInfo */
+
+.desc {
+  padding: 20px 100px 20px 100px;
+  text-align: left;
+  color: rgb(200, 200, 200);
+  font-size: clamp(.5rem, .2rem + 2vw, 3rem);
+}
+
+.Note {
+  padding: 20px 100px 20px 100px;
+  font-size: 12px;
+  font-size: clamp(.5rem, .2rem + 2vw, 3rem);
+}
+
+.listTable {
+  display: flex;
+  flex-direction: column;
+  margin: 20px 100px 30px 100px;
+}
+
+.tableRow {
+  display: flex;
+  flex-direction: row;
+  border-bottom: 1px solid rgb(40, 55, 55);
+}
+
+.tableLeft {
+  width: 50%;
+  color:lightblue;
+  background-color: rgb(35, 35, 35);
+  display: flex;
+  text-align: start;
+  font-size: clamp(.5rem, 0.5rem + 2vw, 2rem);
+  font-weight: bold;
+  min-height: 30px;
+  padding: 10px 5px 2px 10px;
+}
+
+.tableRight {
+  width: 50%;
+  color: white;
+  background-color: rgb(40, 40, 40);
+  display: flex;
+  text-align: start;
+  font-size: clamp(0.3rem, .2rem + 2vw, 2rem);
+  min-height: 30px;
+  padding: 10px 5px 2px 10px;
+}
+
+@media screen and (max-width: 600px) {
+  .tableRow {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .desc {
+    font-size: clamp(.5rem, .2rem + 2vw, 3rem)
+  }
+  
+  .tableLeft, .tableRight{
+    width: 100%;
+    font-size: clamp(1.5rem, 1rem + 2vw, 4rem)
+  }
+}
+
+.Link {
+  text-decoration: underline;
+  color: rgb(120, 220, 255);
+}
+
+.Link:visited {
+  color: rgb(120, 220, 255);;
+}
+
+.DetailView {
+  margin-top: 10%
+}
+
 .coinContainer {
   display: flex;
   flex-direction: row;
   align-items: center;
+}
+
+.coinContainer2 {
+  display: flex;
+  justify-content: center;
 }
 
 .coinImage {
@@ -31,9 +141,9 @@
 .coinSymbol {
   display: flex;
   /* min-width: 200px; */
-  font-size: 7pt;
+  font-size: 10pt;
   justify-content: flex-start;
-  line-height: 5%;
+  line-height: 45%;
 }
 
 .coinPrice {
