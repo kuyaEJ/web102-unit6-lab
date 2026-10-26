@@ -1,35 +1,100 @@
 import {useEffect, useState} from 'react'
 import '../App.css'
+import CoinChart from './CoinChart'
 
 const CoinDetail = ({coin}) => {
-  let tries = 0
-  const MAX_ATTEMPTS = 1
-  const API_KEY = import.meta.env.VITE_APP_API_KEY
+  if (!coin.id) return (<p>Coin data couldn't load</p>);
   const [currCoin, setCoin] = useState(null);
-  
-  useEffect(() => {
-    const fetchCoinsById = async() => {
-      const response = await fetch(`https://api.coingecko.com/api/v3/coins/${coin.id}`, {
-        method: "GET",
-        headers: {
-          'x-cg-demo-api-key': API_KEY,
-        }
-      })
-      const data = await response.json()
-      const stringData = JSON.stringify(data)
-      
-      localStorage.setItem(data.id, stringData)
-      setCoin(JSON.parse(stringData))
-    }
-    const storedString = localStorage.getItem(coin.id);
-    const localData = JSON.parse(storedString)
+  const [market, setMarket] = useState(null);
 
-    if (localData != null) {
-      setCoin(localData)
-    } else {
-      if (tries <= MAX_ATTEMPTS) fetchCoinsById().catch((console.errors))
-      tries += 1
+  useEffect(() => {
+    const API_KEY = import.meta.env.VITE_APP_API_KEY
+    let tries = 0
+    const MAX_ATTEMPTS = 1
+
+    const fetchJson = async (url) => {
+      const API_START = "/api"
+      const response = await fetch(`${API_START}/${url}`, {
+          method: "GET",
+          headers: {
+            "x-cg-demo-api-key": API_KEY,
+          }
+        })
+        return await response.json()
     }
+
+    // Named params and defaults
+    const updateState = async({url, localStorageName=coin.id, setState}) => {
+      const fetchMethod = fetchJson(`${url}`).catch((console.error))
+      const data = await fetchMethod
+      const stringData = JSON.stringify(data)
+      localStorage.setItem(localStorageName, stringData)
+      setState(JSON.parse(stringData))
+      return data
+    }
+
+    const getCurrentDate = () => {
+      const unixSeconds = Math.floor(Date.now() / 1000);
+      return unixSeconds
+    }
+
+    const get30DayAgo = () => {
+      const date = new Date();
+      date.setDate(date.getDate()-30);
+      const unixSeconds = Math.floor(date.getTime() / 1000);
+      return unixSeconds
+    }
+
+    const fetchMarketChartById = async(id=coin.id) => {
+      const params = new URLSearchParams({
+        vs_currency: "usd",
+        from: get30DayAgo(),
+        to: getCurrentDate(),
+        interval: 'daily',
+        precision: 2
+      })
+
+      const data = await updateState({
+        url: `${id}/market_chart/range?${params.toString()}`, 
+        localStorageName: id+"-market", 
+        setState: setMarket
+      })
+      
+      console.log(data)
+      console.log("fetching")
+    }
+    
+    const fetchCoinsById = async(id=coin.id) => {
+      const data = await updateState({
+        url: id, 
+        setState: setCoin
+      })
+      console.log("fetching")
+    }
+
+    const testFetch = ({localStorageName=coin.id, setState, fetchFunc}) => {
+      const storedString = localStorage.getItem(localStorageName);
+
+      const localData = JSON.parse(storedString)
+      
+      if (localData != null) {
+        setState(localData)
+      } else {
+        if (tries <= MAX_ATTEMPTS) fetchFunc()
+        tries += 1
+      }
+    }
+
+    testFetch({
+      setState: setCoin,
+      fetchFunc: fetchCoinsById
+    })
+
+    testFetch({
+      localStorageName: `${String(coin.id) + "market"}`,
+      setState: setMarket,
+      fetchFunc: fetchMarketChartById
+    })
   }, [])
 
   const convertToDateFormat = (dateString) => {
@@ -65,8 +130,12 @@ const CoinDetail = ({coin}) => {
           <p className='desc'>
             {currCoin.description ? currCoin.description.en : ""}
           </p>
+
           <p className="Note">
-            {currCoin.hashing_algorithm ? `The coin was built with the algorithm : <strong>${currCoin.hashing_algorithm}</strong>` : ""}
+            The coin was built with the algorithm:
+            {currCoin.hashing_algorithm ? (
+              <strong> {currCoin.hashing_algorithm}</strong>
+              ) : ""}
           </p>
           
           <div className='listTable'>
@@ -79,6 +148,8 @@ const CoinDetail = ({coin}) => {
               ) : (<p></p>)
             ))}
           </div>
+
+          <CoinChart market={market} name={coin.name}/>
         </>
         
       ) : (

@@ -9,10 +9,10 @@ function App() {
   const [searchInput, setSearchInput] = useState("")
   const [filteredResult, setFilteredResult] = useState([])
   const API_KEY = import.meta.env.VITE_APP_API_KEY
-
+  // localStorage.clear()
   useEffect(() => {
     const fetchTopCoins = async() => {
-      const response = await fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=30&page=1", {
+      const response = await fetch("/api/markets?vs_currency=usd&order=market_cap_desc&per_page=30&page=1", {
         headers: {
           'x-cg-demo-api-key': API_KEY
         }
