@@ -8,28 +8,44 @@ const CoinDetail = ({coin}) => {
   const [market, setMarket] = useState(null);
 
   useEffect(() => {
+    let controllerId = new AbortController();
+    let controllerMarket = new AbortController();
     const API_KEY = import.meta.env.VITE_APP_API_KEY
     let tries = 0
     const MAX_ATTEMPTS = 1
 
-    const fetchJson = async (url) => {
-      const API_START = "/api"
-      const response = await fetch(`${API_START}/${url}`, {
-          method: "GET",
-          headers: {
-            "x-cg-demo-api-key": API_KEY,
-          }
-        })
-        return await response.json()
+    const fetchJson = async (url, controller) => {
+      const signal = controller.signal
+      try {
+        const API_START = "/api"
+        const response = await fetch(`${API_START}/${url}`, {
+            method: "GET",
+            headers: {
+              "x-cg-demo-api-key": API_KEY,
+            },
+            signal: signal,
+          })
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
+          return await response.json()
+      } catch (error ) {
+        if (error.name == "AbortError") {
+          console.log("Do nothing for abort error")
+          return;
+        }
+        console.error(error)
+      }
     }
 
     // Named params and defaults
-    const updateState = async({url, localStorageName=coin.id, setState}) => {
-      const fetchMethod = fetchJson(`${url}`).catch((console.error))
+    const updateState = async({url, localStorageName=coin.id, setState, controller}) => {
+      const fetchMethod = fetchJson(`${url}`, controller).catch((console.error))
       const data = await fetchMethod
-      const stringData = JSON.stringify(data)
-      localStorage.setItem(localStorageName, stringData)
-      setState(JSON.parse(stringData))
+      let stringData;
+      if (data) {
+        stringData = JSON.stringify(data)
+        localStorage.setItem(localStorageName, stringData)
+        setState(JSON.parse(stringData))
+      }
       return data
     }
 
@@ -57,7 +73,8 @@ const CoinDetail = ({coin}) => {
       const data = await updateState({
         url: `${id}/market_chart/range?${params.toString()}`, 
         localStorageName: id+"-market", 
-        setState: setMarket
+        setState: setMarket,
+        controller: controllerMarket
       })
       
       console.log(data)
@@ -67,7 +84,8 @@ const CoinDetail = ({coin}) => {
     const fetchCoinsById = async(id=coin.id) => {
       const data = await updateState({
         url: id, 
-        setState: setCoin
+        setState: setCoin,
+        controller: controllerId
       })
       console.log("fetching")
     }
@@ -75,7 +93,8 @@ const CoinDetail = ({coin}) => {
     const testFetch = ({localStorageName=coin.id, setState, fetchFunc}) => {
       const storedString = localStorage.getItem(localStorageName);
 
-      const localData = JSON.parse(storedString)
+      let localData;
+      if (storedString) localData = JSON.parse(storedString)
       
       if (localData != null) {
         setState(localData)
@@ -89,13 +108,15 @@ const CoinDetail = ({coin}) => {
       setState: setCoin,
       fetchFunc: fetchCoinsById
     })
-
+    
     testFetch({
       localStorageName: `${String(coin.id) + "market"}`,
       setState: setMarket,
       fetchFunc: fetchMarketChartById
     })
-  }, [])
+    
+    return () => {controllerId.abort("Cancelled fetch"); controllerMarket.abort("Cancelled fetch");}
+  }, [coin.id])
 
   const convertToDateFormat = (dateString) => {
     const [year, month, day] = dateString.split('-')

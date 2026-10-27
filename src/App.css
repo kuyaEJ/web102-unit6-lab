@@ -154,6 +154,20 @@ nav {
 }
 
 /* Coin Chart */
+.CoinChart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.LineChart {
+  min-width: 0;
+  height: 400px;
+  width: 100%;
+  max-width: 600px;
+  margin: 25px 40px 10px 10px;
+}
+
 /* The outer wrapper box */
 .recharts-default-tooltip {
   background-color: #1f2937 !important; /* Dark background (Tailwind gray-800) */
